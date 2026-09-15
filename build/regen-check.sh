@@ -69,8 +69,11 @@ dotnet new ddd-refdata -n Country --migration-version V0004
 echo "== applying the manual post-action (repository registration)"
 REGISTRATIONS=src/App.Infrastructure/InfrastructureServiceCollectionExtensions.cs
 
-sed -i 's|^using App\.Domain\.Sample;$|using App.Domain.Sample;\nusing App.Domain.Todo;|' "$REGISTRATIONS"
-sed -i 's|^\( *\)services\.AddScoped<ICities, Cities>();$|\1services.AddScoped<ICities, Cities>();\n\1services.AddScoped<ITodos, Todos>();\n\1services.AddScoped<ICountries, Countries>();|' "$REGISTRATIONS"
+# Anchored on the scaffolding marker and on the last domain using, so this keeps working after a
+# project has deleted every module the starter shipped with.
+LAST_DOMAIN_USING=$(grep -n '^using App\.Domain\.[A-Za-z]*;$' "$REGISTRATIONS" | tail -n 1 | cut -d: -f1)
+sed -i "${LAST_DOMAIN_USING}a using App.Domain.Todo;" "$REGISTRATIONS"
+sed -i 's|^\( *\)// <ddd-scaffold:repositories>.*$|\1services.AddScoped<ITodos, Todos>();\n\1services.AddScoped<ICountries, Countries>();\n&|' "$REGISTRATIONS"
 assert_contains "$REGISTRATIONS" 'using App.Domain.Todo;'
 assert_contains "$REGISTRATIONS" 'services.AddScoped<ITodos, Todos>();'
 assert_contains "$REGISTRATIONS" 'services.AddScoped<ICountries, Countries>();'
@@ -80,13 +83,16 @@ assert_migration src/App.Infrastructure/Migrations/V0003__add_todos.sql 'CREATE 
 assert_migration src/App.Infrastructure/Migrations/V0004__add_countries.sql 'CREATE TABLE countries'
 
 echo "== restore"
-dotnet restore dotnet-ddd-starter.slnx
+# The solution is found, not named: a project that renames it keeps this gate.
+SOLUTION=$(ls -1 ./*.slnx | head -n 1)
+[ -n "$SOLUTION" ] || { echo "no .slnx solution found in $PWD" >&2; exit 1; }
+dotnet restore "$SOLUTION"
 
 echo "== build -warnaserror"
-dotnet build dotnet-ddd-starter.slnx --no-restore -warnaserror
+dotnet build "$SOLUTION" --no-restore -warnaserror
 
 echo "== format --verify-no-changes"
-dotnet format dotnet-ddd-starter.slnx --verify-no-changes --no-restore
+dotnet format "$SOLUTION" --verify-no-changes --no-restore
 
 for project in tests/App.Domain.Tests tests/App.ArchitectureTests tests/App.Infrastructure.Tests; do
   echo "== test $project"

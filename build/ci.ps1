@@ -9,7 +9,9 @@ param([switch]$SkipIntegration)
 
 $ErrorActionPreference = 'Stop'
 Set-Location (Join-Path $PSScriptRoot '..')
-$solution = 'dotnet-ddd-starter.slnx'
+# The solution is found, not named, so renaming it does not silently drop every gate below (ADR-020).
+$solution = (Get-ChildItem -Path . -Filter '*.slnx' -File | Select-Object -First 1).Name
+if (-not $solution) { throw "no .slnx solution found in $(Get-Location)" }
 New-Item -ItemType Directory -Force artifacts | Out-Null
 
 function Step($name, [scriptblock]$body) {

@@ -4,7 +4,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-SOLUTION=dotnet-ddd-starter.slnx
+# The solution is found, not named, so renaming it does not silently drop every gate below (ADR-020).
+SOLUTION=$(ls -1 ./*.slnx | head -n 1)
+[ -n "$SOLUTION" ] || { echo "no .slnx solution found in $PWD" >&2; exit 1; }
 mkdir -p artifacts
 
 echo "== restore"

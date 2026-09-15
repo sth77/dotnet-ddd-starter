@@ -1,9 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Application ring: orchestration and event handlers. Plain classes, no bus reference (design §7, risk 3). -->
+  <!--
+    Application ring: orchestration and event handlers. Plain classes, no bus reference. The one framework
+    package allowed here is Microsoft.Extensions.Logging.Abstractions: an application service that
+    orchestrates a unit of work unattended has something to say, and ILogger is an abstraction, not a
+    framework (ADR-019).
+  -->
 
   <ItemGroup>
     <ProjectReference Include="../App.Domain/App.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
 
 </Project>

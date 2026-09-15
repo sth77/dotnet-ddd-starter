@@ -68,9 +68,11 @@ try {
         Step 'dotnet new ddd-refdata -n Country --migration-version V0004' { dotnet new ddd-refdata -n Country --migration-version V0004 }
 
         Write-Host '== applying the manual post-action (repository registration)' -ForegroundColor Cyan
+        # Anchored on the scaffolding marker and on the last domain using, so the check keeps working after a
+        # project has deleted every module the starter shipped with (ADR-020).
         $registrations = Join-Path $temp 'src/App.Infrastructure/InfrastructureServiceCollectionExtensions.cs'
-        Add-AfterLine $registrations '^using App\.Domain\.Sample;$' @('using App.Domain.Todo;')
-        Add-AfterLine $registrations 'services\.AddScoped<ICities, Cities>\(\);' @(
+        Add-AfterLine $registrations '^using App\.Domain\.[A-Za-z]+;$' @('using App.Domain.Todo;')
+        Add-AfterLine $registrations '<ddd-scaffold:repositories>' @(
             '        services.AddScoped<ITodos, Todos>();',
             '        services.AddScoped<ICountries, Countries>();')
 
@@ -78,9 +80,13 @@ try {
         Assert-Migration (Join-Path $temp 'src/App.Infrastructure/Migrations/V0003__add_todos.sql') 'CREATE TABLE todos'
         Assert-Migration (Join-Path $temp 'src/App.Infrastructure/Migrations/V0004__add_countries.sql') 'CREATE TABLE countries'
 
-        Step 'restore' { dotnet restore dotnet-ddd-starter.slnx }
-        Step 'build -warnaserror' { dotnet build dotnet-ddd-starter.slnx --no-restore -warnaserror }
-        Step 'format --verify-no-changes' { dotnet format dotnet-ddd-starter.slnx --verify-no-changes --no-restore }
+        # The solution is found, not named: a project that renames it keeps this gate (ADR-020).
+        $solution = (Get-ChildItem -Path $temp -Filter '*.slnx' -File | Select-Object -First 1).Name
+        if (-not $solution) { throw "no .slnx solution found in $temp" }
+
+        Step 'restore' { dotnet restore $solution }
+        Step 'build -warnaserror' { dotnet build $solution --no-restore -warnaserror }
+        Step 'format --verify-no-changes' { dotnet format $solution --verify-no-changes --no-restore }
 
         foreach ($project in 'tests/App.Domain.Tests', 'tests/App.ArchitectureTests', 'tests/App.Infrastructure.Tests') {
             Step "test $project" { dotnet test $project --no-build }

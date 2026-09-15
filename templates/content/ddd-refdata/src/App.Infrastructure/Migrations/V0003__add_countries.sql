@@ -3,6 +3,8 @@
 -- taken — the version prefix has to be free and unique (SqlMigratorTests).
 -- Naming: snake_case, pk_<table>, ix_<table>_<columns>. Reference data is not an aggregate: no xmin, no
 -- concurrency token.
+-- The name_* columns follow App.Domain.Common.I18nText: one column per language it declares. Change that
+-- record and this script has to follow, or SchemaValidationTests fails.
 
 CREATE TABLE countries (
     id      uuid                   NOT NULL,

@@ -41,13 +41,24 @@ public sealed class RingRules
             .Check(Rings.Architecture);
 
     [Fact]
-    public void Domain_and_application_rings_are_free_of_frameworks()
-        => Types().That().Are(Rings.Domain).Or().Are(Rings.Application)
+    public void Domain_ring_is_free_of_frameworks()
+        => Types().That().Are(Rings.Domain)
             .Should().NotDependOnAnyTypesThat().ResideInNamespaceMatching(@"^Microsoft\.EntityFrameworkCore")
             .AndShould().NotDependOnAnyTypesThat().ResideInNamespaceMatching(@"^Microsoft\.AspNetCore")
             .AndShould().NotDependOnAnyTypesThat().ResideInNamespaceMatching(@"^Microsoft\.Extensions")
             .AndShould().NotDependOnAnyTypesThat().ResideInNamespaceMatching(@"^Npgsql")
-            .Because("framework types belong to the infrastructure ring; the domain and application rings are plain C# (handlers included)")
+            .Because("the model is plain C#: no persistence, no web, no hosting, not even a logger")
+            .Check(Rings.Architecture);
+
+    [Fact]
+    public void Application_ring_is_free_of_frameworks_except_the_logging_abstractions()
+        => Types().That().Are(Rings.Application)
+            .Should().NotDependOnAnyTypesThat().ResideInNamespaceMatching(@"^Microsoft\.EntityFrameworkCore")
+            .AndShould().NotDependOnAnyTypesThat().ResideInNamespaceMatching(@"^Microsoft\.AspNetCore")
+            .AndShould().NotDependOnAnyTypesThat().ResideInNamespaceMatching(@"^Microsoft\.Extensions\.(?!Logging)")
+            .AndShould().NotDependOnAnyTypesThat().ResideInNamespaceMatching(@"^Npgsql")
+            .Because("an application service that orchestrates a unit of work has something to say; ILogger is an "
+                     + "abstraction, not a framework, and hosting/persistence types still belong further out (ADR-019)")
             .Check(Rings.Architecture);
 
     [Fact]

@@ -25,6 +25,10 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<IPeople, People>();
         services.AddScoped<ICities, Cities>();
 
+        // <ddd-scaffold:repositories> — `dotnet new ddd-aggregate` and `ddd-refdata` print a registration to
+        // add here. Keep the marker: build/regen-check.* anchors on it, and it must not depend on which
+        // feature modules a project happens to have (ADR-020).
+
         services.TryAddSingleton(TimeProvider.System);
 
         return services;

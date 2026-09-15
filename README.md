@@ -30,6 +30,15 @@ What you get:
   ([`docs/DEPENDENCIES.md`](docs/DEPENDENCIES.md)).
 - **Scaffolding** via `dotnet new` templates and a regeneration check that keeps them honest.
 
+## A worked example
+
+[`sth77/planez-sample-dotnet`](https://github.com/sth77/planez-sample-dotnet) is this starter with its sample
+modules removed and a real domain put in their place: PlaneZ, a fleet of electric rental airplanes, ported from
+the Spring/jMolecules [`planez-sample`](https://github.com/sth77/planez-sample). It is the reference for what a
+project built on this kernel looks like — two aggregates in one feature module, a second module that reacts to
+the first only through events, an anti-corruption layer over a vendor telemetry API, and the fleet → booking
+cascade proved end to end over HTTP. ADR-019 and ADR-020 came out of building it.
+
 ## Quick start
 
 Prerequisites: .NET SDK 10.0.200 or later, a Docker-compatible container runtime.
@@ -115,13 +124,20 @@ dotnet new ddd-aggregate -n Todo        # domain, persistence, endpoints, tests,
 dotnet new ddd-refdata   -n Country     # reference data entity, repository, read-only endpoints, script
 ```
 
-Then follow the two printed steps (register the repository, check the migration version number). Details in
+Then follow the two printed steps: register the repository at the `<ddd-scaffold:repositories>` marker in
+`InfrastructureServiceCollectionExtensions`, and check the migration version number. Details in
 [`templates/README.md`](templates/README.md) and ADR-017.
 
 **Changing the schema.** Add a script `src/App.Infrastructure/Migrations/V000N__what_changed.sql`; never edit an
 applied one (the runner refuses by checksum). `SchemaValidationTests` fails when the database no longer matches the
 EF model. Deployments apply migrations with a one-shot `dotnet App.Host.dll --migrate`, not from application
 replicas.
+
+**Naming the projects.** The assemblies stay `App.*` and the root namespace follows the project name. That is
+deliberate: the `dotnet new` templates, the analyzer tests and the banned-symbol lists all key on `App.Domain`,
+so renaming them is a repo-wide rename with no payoff — the solution file, the host title and the OpenAPI
+document carry the product's name instead. What a project *does* replace is the contents of
+`src/App.Domain/<Feature>`; the build gates no longer depend on which feature modules exist (ADR-020).
 
 **Adding a dependency.** Register it in `docs/DEPENDENCIES.md` first, then add the version to
 `Directory.Packages.props`, then reference it — and argue in an ADR why the kernel needs it. Class C licences (RPL,
@@ -142,6 +158,8 @@ AGPL, GPL) are prohibited; MediatR ≥ 13, AutoMapper ≥ 15, MassTransit v9 and
 | `D4S-0001` | a restrictively licensed package was referenced | see `docs/DEPENDENCIES.md` §2 for the replacement |
 | `NU1510 … will not be pruned` | the package is part of the .NET 10 shared framework | remove the `PackageReference` |
 | `No suitable constructor was found for the type …` (EF) | a value object nested in another needs a parameterless constructor; get-only properties need explicit `Property(...)` | see ADR-006 |
+| `Complex type 'X.Y#Z' has no properties defined` | a component of a complex type is itself a value object; EF discovers only primitives there | name each component in `ComplexProperty(x => x.Y, y => …)` |
+| `anchor '…' not found` from `regen-check` | the `// <ddd-scaffold:repositories>` marker was removed | put it back; the scaffolding gates anchor on it (ADR-020) |
 | `Dead-lettered outbox message: …` in a test, or an `outbox_messages.failed_at` row | a handler failed `MaxAttempts` times | fix the handler; clear `failed_at` to redeliver |
 | `State-changing endpoints without an authorisation policy: …` at startup | a POST/PUT/PATCH/DELETE under `/api` has no policy | add `.RequireAuthorization(Policies.X)` |
 | `Authentication:Mode=DevelopmentHeaders is only allowed in …` | header authentication configured outside Development/Testing | configure `Authentication:Jwt` |

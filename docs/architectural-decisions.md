@@ -26,6 +26,8 @@ Status legend: **Accepted** — in force.
 | [ADR-016](#adr-016-dependency-policy-enforced-by-the-build) | Dependency policy enforced by the build |
 | [ADR-017](#adr-017-scaffolding-with-dotnet-new-templates-and-no-injection) | Scaffolding with `dotnet new` templates and no injection |
 | [ADR-018](#adr-018-the-starter-is-a-kernel-not-a-menu) | The starter is a kernel, not a menu |
+| [ADR-019](#adr-019-the-application-ring-may-log) | The application ring may log |
+| [ADR-020](#adr-020-the-gates-do-not-know-the-names-of-the-sample-modules) | The gates do not know the names of the sample modules |
 
 ---
 
@@ -492,6 +494,11 @@ test projects use flat namespaces (`App.Infrastructure.Persistence`, `App.Domain
 Where both `City` types are needed, alias the reference-data one (`using RefCity = App.Domain.ReferenceData.City;`).
 CA1724 is disabled solution-wide.
 
+**A feature with more than one aggregate.** `App.Domain.<Feature>` is named after the *feature*, which for a
+single-aggregate module happens to be the aggregate's own name. Where a module owns several — PlaneZ's `Fleet`
+holds `Airplane` and `AirplaneType` — the feature keeps its own name and no namespace segment is added per
+aggregate. The rule is "one namespace per feature", not "one per aggregate".
+
 **Consequences.** Templates (ADR-017) follow the same rules so generated code compiles against the same analyzers.
 
 ---
@@ -603,3 +610,62 @@ tests is non-negotiable), `Microsoft.CodeAnalysis.BannedApiAnalyzers` (build-tim
 naming convention. Anything added later must argue against the kernel principle in an ADR, not just appear in
 `Directory.Packages.props`. Adding a feature costs about twenty hand-written lines (identifier, `CREATE TABLE`)
 that a generator would have produced; the templates generate both.
+
+---
+
+## ADR-019: The application ring may log
+
+**Status:** Accepted (amends ADR-002).
+
+**Context.** The rings are enforced by project references and by `RingRules`, which banned every
+`Microsoft.Extensions.*` namespace from the domain **and** the application ring. Building the PlaneZ sample on
+this starter showed what that costs. `BookingEventHandler` re-assigns or cancels a pilot's booking when an
+airplane is grounded, and a fleet-wide telemetry round decides which airframes to read; both run unattended,
+after a transaction they did not open, and both are the only place where the *outcome* of that decision exists.
+Neither could say a word about it.
+
+**Alternatives considered.**
+- *Leave the rule* — pushes the logging into the outbox dispatcher, which knows the message but not the
+  decision, or into the repository, which knows neither.
+- *An own logging abstraction in the domain ring* — a second `ILogger` that every adapter has to bridge, with no
+  benefit: `ILogger` already is the abstraction.
+- *Allow `Microsoft.Extensions.Logging.Abstractions` in the application ring only* — chosen.
+
+**Decision.** `App.Application` references `Microsoft.Extensions.Logging.Abstractions` and may inject
+`ILogger<T>` (through `[LoggerMessage]` source-generated methods, as the rest of the repository does). The domain
+ring stays plain C#: not even a logger — a model that wants to report something registers an event. `RingRules`
+is split into `Domain_ring_is_free_of_frameworks` and
+`Application_ring_is_free_of_frameworks_except_the_logging_abstractions`, so the narrower permission is visible
+in the rule's name rather than buried in a regex.
+
+**Consequences.** The application ring gains one Microsoft abstractions package; it pulls in no runtime
+implementation, and `NullLogger<T>.Instance` keeps handler unit tests free of any hosting setup. Hosting,
+persistence and web types stay banned there. Anything beyond logging needs its own ADR.
+
+---
+
+## ADR-020: The gates do not know the names of the sample modules
+
+**Status:** Accepted (amends ADR-017).
+
+**Context.** The first thing a project does with this starter is delete the shipped sample modules and put its
+own there. The regeneration check and the CI scripts did not survive that: they anchored the generated
+repository registration on `using App.Domain.Sample;` and on `services.AddScoped<ICities, Cities>();`, and they
+named the solution file literally. Porting the PlaneZ domain onto the starter broke both — and a broken *check*
+fails differently from broken code: it stops proving anything.
+
+**Alternatives considered.**
+- *Keep one sample module forever* — a permanent tax on every downstream repository, only so that a check keeps
+  passing.
+- *Let the scripts search for whatever registration happens to be there* — fragile in a new way; it guesses.
+- *Declare an explicit extension point, and find the solution rather than name it* — chosen.
+
+**Decision.** `InfrastructureServiceCollectionExtensions.AddPersistence` carries a
+`// <ddd-scaffold:repositories>` marker; the scaffolding instructions and both regeneration checks anchor on it,
+and on the last `using App.Domain.<something>;` line rather than on a particular module. `build/ci.sh`,
+`build/ci.ps1` and both regeneration checks resolve the solution with a `*.slnx` glob and fail loudly when there
+is none. Nothing under `build/` names a feature module.
+
+**Consequences.** Renaming the solution, or deleting every module the starter shipped with, keeps the gates
+working — which is the only state in which they are worth having. The marker comment is load-bearing: removing
+it fails the regeneration check with "anchor not found", which is the intended diagnostic.

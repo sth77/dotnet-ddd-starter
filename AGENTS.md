@@ -33,7 +33,7 @@ Most training data predates mid-2025 and 2026. In this repository:
 | an identifier | anywhere in the domain, copying `SampleId.cs` | nothing else — converters are discovered |
 | an endpoint | `src/App.Api/<Feature>/<Feature>Endpoints.cs` | give it a name and a policy; add a `CommandEndpoint` for the link |
 | an event handler | `src/App.Application/<Feature>/` implementing `IEventHandler<TEvent>` | nothing else — handlers are discovered |
-| a repository | `src/App.Infrastructure/Persistence/<Feature>/` | `services.AddScoped<IThings, Things>()` in `AddPersistence` |
+| a repository | `src/App.Infrastructure/Persistence/<Feature>/` | `services.AddScoped<IThings, Things>()` at the `<ddd-scaffold:repositories>` marker in `AddPersistence` |
 | a package | `docs/DEPENDENCIES.md` first, then `Directory.Packages.props`, then an ADR | never a version in a `.csproj` |
 
 ## Non-negotiables the build checks
@@ -65,6 +65,10 @@ Most training data predates mid-2025 and 2026. In this repository:
 | `RS0030 … DateTime.UtcNow is banned` | banned API, also in tests | `TimeProvider.System.GetUtcNow()` |
 | `CS8927` in a `ValueConverter` | static abstract call in an expression tree | route through a static helper |
 | `No suitable constructor was found for the type` | nested value object without parameterless ctor, or get-only property not configured | see ADR-006 |
+| `Complex type 'X.Y#Z' has no properties defined` | a component of the complex type is itself a value object; EF discovers only primitives inside a complex type | name each one: `ComplexProperty(x => x.Y, y => { y.Property(p => p.A); ... })` |
+| `SchemaValidationTests`: column is `numeric`, model expects `numeric(p,s)` | a single-value value object over `decimal` has no precision | `configurationBuilder.Properties<TMoney>().HavePrecision(18, 2)` in `ConfigureConventions` |
+| `CA1822 … 'Can' does not access instance data` | an aggregate whose `Can(Type)` has no state machine | `[SuppressMessage("Performance", "CA1822:Mark members as static", …)]` — the uniform aggregate API is worth the attribute |
+| `anchor '…' not found` from `regen-check` | the `// <ddd-scaffold:repositories>` marker was removed | put it back (ADR-020); the scaffolding gates anchor on it |
 | `operator does not exist: jsonb ~~ jsonb` | LINQ `Contains` on the outbox payload | filter in memory or use `EF.Functions.JsonContains` |
 | `IDE1006 Missing prefix '_'` | private *instance* field without underscore | rename; static/const fields are PascalCase |
 | `ENDOFLINE` from `dotnet format` | CRLF written by a tool (Python on Windows writes CRLF by default) | write with `newline='\n'`; `.gitattributes` normalises on commit |

@@ -46,6 +46,13 @@ Reference data (`ReferenceData`) is copied *from*; it never depends on a feature
   Serialises as a bare value; EF converter registered automatically by `RegisterDomainValueObjects()`.
 - Multiple fields: a `sealed record` mapped as a complex type (`ComplexProperty`). Columns are prefixed with the
   owning property (`city_postal_code`). Records nested in records need a private parameterless constructor.
+- **A value object used *inside* a complex type is not discovered**: EF maps only primitives there by
+  convention, and the model then fails to build with "has no properties defined". Name each component
+  explicitly: `builder.ComplexProperty(x => x.Battery, b => { b.Property(p => p.Capacity); b.Property(p => p.Charge); })`.
+- **A single-value value object over `decimal` needs a precision**, stated once next to the other conventions:
+  `configurationBuilder.Properties<Kwh>().HavePrecision(10, 3)`. The converter registered by
+  `RegisterDomainValueObjects()` decides how the value is *stored*, not how wide the column is; without this the
+  column drifts from the hand-written script and `SchemaValidationTests` fails.
 
 ## 4. Repositories
 
@@ -91,6 +98,8 @@ Reference data (`ReferenceData`) is copied *from*; it never depends on a feature
   scan. Inject repositories and `IUnitOfWork`; call `CommitAsync` once.
 - Idempotent by construction (set the same value twice = no-op). Each handler runs in its own scope and
   transaction; the inbox row is written in that transaction.
+- A handler may inject `ILogger<T>` and log through a `[LoggerMessage]` partial method — the one framework
+  abstraction the application ring is allowed (ADR-019). The domain ring still gets none.
 - Failures retry with cooldown (`Outbox:Backoff`), then dead-letter (`outbox_messages.failed_at`) with an error
   log. Nothing else is needed to make a handler "retryable".
 

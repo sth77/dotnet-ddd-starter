@@ -30,7 +30,7 @@ Uninstall with the same argument you installed with:
 dotnet new uninstall ./templates          # or: dotnet new uninstall D4S.Ddd.Templates
 ```
 
-> The template project is deliberately **not** a member of `dotnet-ddd-starter.slnx`. It is packed on its own,
+> The template project is deliberately **not** a member of the repository's `.slnx` solution. It is packed on its own,
 > so `dotnet build` at the repository root never sees the template content.
 
 ## Use
