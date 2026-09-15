@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Domain ring. References nothing but the BCL. EF Core and ASP.NET Core cannot be used here: they are not
+    referenced, and their namespaces are additionally banned (build/BannedSymbols.Domain.txt) for a clearer diagnostic.
+  -->
+
+  <ItemGroup>
+    <AdditionalFiles Include="$(RepoRoot)build/BannedSymbols.Domain.txt" Link="BannedSymbols.Domain.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../App.Analyzers/App.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="App.Domain.Tests" />
+  </ItemGroup>
+
+</Project>

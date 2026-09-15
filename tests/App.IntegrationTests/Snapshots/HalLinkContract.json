@@ -1,0 +1,26 @@
+﻿{
+  "draft/user": {
+    "self": "/api/samples/{id}",
+    "update": "/api/samples/{id}"
+  },
+  "draft/admin": {
+    "publish": "/api/samples/{id}/publish",
+    "self": "/api/samples/{id}",
+    "update": "/api/samples/{id}"
+  },
+  "published/user": {
+    "self": "/api/samples/{id}",
+    "update": "/api/samples/{id}"
+  },
+  "published/admin": {
+    "archive": "/api/samples/{id}/archive",
+    "self": "/api/samples/{id}",
+    "update": "/api/samples/{id}"
+  },
+  "archived/user": {
+    "self": "/api/samples/{id}"
+  },
+  "archived/admin": {
+    "self": "/api/samples/{id}"
+  }
+}

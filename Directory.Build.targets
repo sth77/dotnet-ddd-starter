@@ -1,0 +1,21 @@
+<Project>
+
+  <!--
+    Compile-time denylist for packages whose licence class prohibits them (DEPENDENCIES.md §2, §5.2).
+    Leading and trailing ';' so that Contains() matches whole ids only.
+  -->
+  <PropertyGroup>
+    <BannedPackageIds>;MediatR;MediatR.Contracts;MediatR.Extensions.Microsoft.DependencyInjection;AutoMapper;AutoMapper.Extensions.Microsoft.DependencyInjection;MassTransit;MassTransit.Abstractions;FluentAssertions;</BannedPackageIds>
+  </PropertyGroup>
+
+  <Target Name="BanRestrictivelyLicensedPackages" BeforeTargets="CollectPackageReferences;_GenerateRestoreProjectSpec;CoreCompile">
+    <ItemGroup>
+      <_BannedInUse Include="@(PackageReference)"
+                    Condition="$(BannedPackageIds.Contains(';%(PackageReference.Identity);'))" />
+    </ItemGroup>
+    <Error Condition="'@(_BannedInUse)' != ''"
+           Code="D4S-0001"
+           Text="Restrictively licensed package(s) referenced: @(_BannedInUse, ', '). See docs/DEPENDENCIES.md §2." />
+  </Target>
+
+</Project>

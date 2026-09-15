@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Infrastructure ring, HTTP surface: endpoint modules, response records, HAL links, ProblemDetails. -->
+
+  <ItemGroup>
+    <ProjectReference Include="../App.Domain/App.Domain.csproj" />
+    <ProjectReference Include="../App.Application/App.Application.csproj" />
+    <ProjectReference Include="../App.Infrastructure/App.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="App.Host" />
+    <InternalsVisibleTo Include="App.IntegrationTests" />
+  </ItemGroup>
+
+</Project>

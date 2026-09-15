@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Application ring: orchestration and event handlers. Plain classes, no bus reference (design §7, risk 3). -->
+
+  <ItemGroup>
+    <ProjectReference Include="../App.Domain/App.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

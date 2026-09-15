@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Infrastructure ring: persistence (EF Core 10 + PostgreSQL, SQL-first migrations), outbox messaging, security. -->
+
+  <ItemGroup>
+    <ProjectReference Include="../App.Domain/App.Domain.csproj" />
+    <ProjectReference Include="../App.Application/App.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="EFCore.NamingConventions" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- SQL-first migrations, applied in name order by SqlMigrator (ADR-007). -->
+    <EmbeddedResource Include="Migrations/*.sql" LogicalName="Migrations/%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="App.Api" />
+    <InternalsVisibleTo Include="App.Host" />
+    <InternalsVisibleTo Include="App.Infrastructure.Tests" />
+    <InternalsVisibleTo Include="App.IntegrationTests" />
+  </ItemGroup>
+
+</Project>

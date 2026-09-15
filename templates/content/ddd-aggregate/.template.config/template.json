@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "D4S",
+  "classifications": [
+    "DDD",
+    "Aggregate",
+    "Web API"
+  ],
+  "identity": "D4S.Ddd.Aggregate",
+  "groupIdentity": "D4S.Ddd.Aggregate",
+  "name": "DDD aggregate (domain model, persistence, migration, endpoints, tests)",
+  "description": "Adds a tactical-DDD aggregate to the starter: identifier, state enum, command and event hierarchies, aggregate root, repository interface, EF Core configuration and repository, SQL migration script, HAL endpoint module and domain tests. Run from the repository root.",
+  "shortName": "ddd-aggregate",
+  "defaultName": "Todo",
+  "tags": {
+    "language": "C#",
+    "type": "item"
+  },
+  "sourceName": "Todo",
+  "preferNameDirectory": false,
+  "symbols": {
+    "plural": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "",
+      "description": "PascalCase plural of the aggregate (repository type, endpoint names, route segment, table name). Defaults to a naive pluralisation of the name: Todo -> Todos, City -> Cities."
+    },
+    "pluralDefault": {
+      "type": "generated",
+      "generator": "regex",
+      "dataType": "string",
+      "parameters": {
+        "source": "name",
+        "steps": [
+          {
+            "regex": "y$",
+            "replacement": "ies"
+          },
+          {
+            "regex": "([^s])$",
+            "replacement": "$1s"
+          }
+        ]
+      }
+    },
+    "pluralPascal": {
+      "type": "generated",
+      "generator": "coalesce",
+      "dataType": "string",
+      "parameters": {
+        "sourceVariableName": "plural",
+        "fallbackVariableName": "pluralDefault"
+      },
+      "replaces": "Todos",
+      "fileRename": "Todos"
+    },
+    "pluralLower": {
+      "type": "generated",
+      "generator": "casing",
+      "dataType": "string",
+      "parameters": {
+        "source": "pluralPascal",
+        "toLower": true
+      },
+      "replaces": "todos",
+      "fileRename": "todos"
+    },
+    "migration-version": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "V0003",
+      "replaces": "V0003",
+      "fileRename": "V0003",
+      "description": "Version prefix of the generated SQL migration script (Vnnnn). Must be the next free, unique number in src/App.Infrastructure/Migrations: SqlMigratorTests rejects duplicates."
+    }
+  },
+  "postActions": [
+    {
+      "id": "wire-up",
+      "description": "Wiring steps that dotnet new cannot perform (design section 12).",
+      "actionId": "AC1156F7-BB77-4DB8-B28F-24EEBCCA1E5C",
+      "continueOnError": true,
+      "manualInstructions": [
+        {
+          "text": "Two steps that dotnet new cannot inject. The example below is spelled for `-n Todo`;\nsubstitute the name you actually passed (and its plural: <Name>s by default, or the --plural you gave).\n\n1. src/App.Infrastructure/InfrastructureServiceCollectionExtensions.cs\n     add   using App.Domain.Todo;\n     add   services.AddScoped<ITodos, Todos>();   inside AddPersistence, next to the other repositories.\n\n2. src/App.Infrastructure/Migrations/V0003__add_todos.sql\n     the script is embedded automatically (Migrations/*.sql) and applied by SqlMigrator, but the version\n     number is a guess: rename the file to the next free Vnnnn in that folder (or generate with\n     --migration-version V0004). SqlMigratorTests requires the Vnnnn__lower_snake_case shape and a unique Vnnnn prefix.\n     Review the columns against TodoConfiguration and add a CREATE INDEX per HasIndex; SchemaValidationTests\n     diffs the database against the EF model.\n\nNothing else needs registering: the endpoint module (IEndpointModule) is found by MapApi(), the EF mapping\n(IEntityTypeConfiguration<T>) by ApplyConfigurationsFromAssembly(), and the EF converter for TodoId by the\nvalue-object convention (RegisterDomainValueObjects) — identifiers need no persistence code at all.\n\nThen:  dotnet build -warnaserror  &&  dotnet test"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+## .NET
+bin/
+obj/
+artifacts/
+*.user
+*.suo
+.vs/
+.idea/
+*.swp
+TestResults/
+*.received.*
+## Local secrets / env
+appsettings.*.local.json
+.env
+## Tools
+.dotnet/

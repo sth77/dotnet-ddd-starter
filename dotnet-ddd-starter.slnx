@@ -1,0 +1,29 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path="nuget.config" />
+    <File Path=".editorconfig" />
+  </Folder>
+  <Folder Name="/build/">
+    <File Path="build/BannedSymbols.Common.txt" />
+    <File Path="build/BannedSymbols.Domain.txt" />
+    <File Path="build/allowed-licenses.json" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/App.Analyzers/App.Analyzers.csproj" />
+    <Project Path="src/App.Domain/App.Domain.csproj" />
+    <Project Path="src/App.Application/App.Application.csproj" />
+    <Project Path="src/App.Infrastructure/App.Infrastructure.csproj" />
+    <Project Path="src/App.Api/App.Api.csproj" />
+    <Project Path="src/App.Host/App.Host.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/App.Domain.Tests/App.Domain.Tests.csproj" />
+    <Project Path="tests/App.Infrastructure.Tests/App.Infrastructure.Tests.csproj" />
+    <Project Path="tests/App.ArchitectureTests/App.ArchitectureTests.csproj" />
+    <Project Path="tests/App.IntegrationTests/App.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

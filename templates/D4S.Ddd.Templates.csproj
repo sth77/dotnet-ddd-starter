@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Template pack (design §12). Packed separately from the solution: it is deliberately NOT a member of
+    dotnet-ddd-starter.slnx, so `dotnet build` at the repository root never compiles the template content.
+    Directory.Build.props recognises anything under templates/ (IsTemplateProject) and skips the analyzer
+    package reference for it.
+  -->
+
+  <PropertyGroup>
+    <PackageType>Template</PackageType>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>D4S.Ddd.Templates</PackageId>
+    <Version>0.1.0</Version>
+    <Title>D4S (Dotnet DDD Starter) tactical DDD templates</Title>
+    <Authors>D4S</Authors>
+    <Description>dotnet new templates for the tactical-DDD starter: ddd-aggregate and ddd-refdata.</Description>
+    <PackageTags>dotnet-new;templates;ddd</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- '.' keeps the package paths at content/<template>/... instead of content/content/... -->
+    <ContentTargetFolders>.</ContentTargetFolders>
+    <IsPackable>true</IsPackable>
+    <!-- Without this, NuGet drops the dot-prefixed .template.config directories from the package. -->
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <!-- The pack has no dependencies; a lock file would only add noise. -->
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Template content is data, never compiled. -->
+    <Compile Remove="**\*" />
+    <Content Include="content\**\*" Exclude="content\**\bin\**;content\**\obj\**" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

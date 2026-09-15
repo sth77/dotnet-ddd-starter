@@ -1,0 +1,8 @@
+# Banned in the domain ring only (design §5.1): the model stays free of persistence and web concerns.
+N:System.ComponentModel.DataAnnotations.Schema;Mapping belongs in App.Infrastructure IEntityTypeConfiguration<T> classes, not on the model.
+T:System.ComponentModel.DataAnnotations.KeyAttribute;Configure keys in App.Infrastructure.
+T:System.ComponentModel.DataAnnotations.TimestampAttribute;Concurrency tokens are configured once in AppDbContext.
+T:System.ComponentModel.DataAnnotations.ConcurrencyCheckAttribute;Concurrency tokens are configured once in AppDbContext.
+N:Microsoft.EntityFrameworkCore;The domain ring does not reference EF Core.
+N:Microsoft.AspNetCore;The domain ring does not reference ASP.NET Core.
+M:System.Threading.Tasks.Task.Run;No fire-and-forget in the domain; register a domain event instead.

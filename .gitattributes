@@ -1,0 +1,7 @@
+# LF everywhere; .editorconfig and dotnet format enforce the same. Binary assets excluded from normalisation.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
+*.snk binary
+*.pfx binary

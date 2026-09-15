@@ -1,0 +1,127 @@
+# The authority for formatting and code style. `dotnet format --verify-no-changes` and
+# EnforceCodeStyleInBuild both read this file (design §13).
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{csproj,props,targets,slnx,xml,json,yml,yaml}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.cs]
+# --- Formatting ---------------------------------------------------------------
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_preserve_single_line_statements = false
+csharp_preserve_single_line_blocks = true
+csharp_using_directive_placement = outside_namespace:warning
+csharp_style_namespace_declarations = file_scoped:warning
+
+# --- Language preferences -----------------------------------------------------
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = true:suggestion
+csharp_prefer_braces = true:warning
+csharp_prefer_simple_using_statement = true:suggestion
+csharp_style_prefer_primary_constructors = true:suggestion
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_expression_bodied_properties = true:suggestion
+csharp_style_pattern_matching_over_is_with_cast_check = true:warning
+csharp_style_prefer_switch_expression = true:suggestion
+csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
+dotnet_style_collection_initializer = true:suggestion
+dotnet_style_prefer_collection_expression = when_types_loosely_match:suggestion
+dotnet_style_qualification_for_field = false:warning
+dotnet_style_qualification_for_property = false:warning
+dotnet_style_qualification_for_method = false:warning
+dotnet_style_predefined_type_for_locals_parameters_members = true:warning
+dotnet_style_readonly_field = true:warning
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+
+# --- Naming -------------------------------------------------------------------
+dotnet_naming_rule.private_fields_underscore.severity = warning
+dotnet_naming_rule.private_fields_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_underscore.style = underscore_camel
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_style.underscore_camel.capitalization = camel_case
+dotnet_naming_style.underscore_camel.required_prefix = _
+
+# static and const private fields are PascalCase (more specific symbol spec, so it wins over the rule above)
+dotnet_naming_rule.private_static_fields_pascal.severity = warning
+dotnet_naming_rule.private_static_fields_pascal.symbols = private_static_fields
+dotnet_naming_rule.private_static_fields_pascal.style = pascal_case_style
+dotnet_naming_symbols.private_static_fields.applicable_kinds = field
+dotnet_naming_symbols.private_static_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_fields.required_modifiers = static
+dotnet_naming_rule.private_const_fields_pascal.severity = warning
+dotnet_naming_rule.private_const_fields_pascal.symbols = private_const_fields
+dotnet_naming_rule.private_const_fields_pascal.style = pascal_case_style
+dotnet_naming_symbols.private_const_fields.applicable_kinds = field
+dotnet_naming_symbols.private_const_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_const_fields.required_modifiers = const
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+dotnet_naming_rule.interfaces_start_with_i.severity = warning
+dotnet_naming_rule.interfaces_start_with_i.symbols = interfaces
+dotnet_naming_rule.interfaces_start_with_i.style = prefix_i
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_style.prefix_i.capitalization = pascal_case
+dotnet_naming_style.prefix_i.required_prefix = I
+
+# --- Analyzer severities ------------------------------------------------------
+# IDE0005: remove unnecessary usings — fails the build so `dotnet format` stays clean.
+dotnet_diagnostic.IDE0005.severity = warning
+# IDE0130: namespace does not match folder — our feature folders intentionally hold nested namespaces.
+dotnet_diagnostic.IDE0130.severity = none
+# CA1848: LoggerMessage delegates — noise for a starter.
+dotnet_diagnostic.CA1848.severity = none
+# CA1062: parameter null checks — nullable reference types cover this.
+dotnet_diagnostic.CA1062.severity = none
+# CA2007: ConfigureAwait — not relevant in ASP.NET Core / no synchronisation context.
+dotnet_diagnostic.CA2007.severity = none
+# CA1034: nested types — the closed command/event hierarchies are nested by design (design §4.2).
+dotnet_diagnostic.CA1034.severity = none
+# CA1724: type name conflicts with namespace — feature folders are named after their aggregate on purpose.
+dotnet_diagnostic.CA1724.severity = none
+# CA1716: identifiers should not match keywords (Shared, Select…) — allow domain language.
+dotnet_diagnostic.CA1716.severity = none
+# CA1054/1055/1056: URI-typed parameters — HAL links are strings by contract.
+dotnet_diagnostic.CA1054.severity = none
+dotnet_diagnostic.CA1055.severity = none
+dotnet_diagnostic.CA1056.severity = none
+# CA1812: internal class never instantiated — DI and source generators instantiate them.
+dotnet_diagnostic.CA1812.severity = none
+# CA1515: make public types internal — the domain is a public API by design.
+dotnet_diagnostic.CA1515.severity = none
+# CA1000: static members on generic types — Association<,>.To(...) and similar DDD helpers are intentional.
+dotnet_diagnostic.CA1000.severity = none
+# CA1711: reserved suffixes — HalCollection<T> is a HAL collection resource, the name is the point.
+dotnet_diagnostic.CA1711.severity = none
+# CA1707: underscores in identifiers — test method names use them.
+dotnet_diagnostic.CA1707.severity = none
+# CA2234: pass Uri instead of string — HttpClient test helpers.
+dotnet_diagnostic.CA2234.severity = none
+
+[**/*Tests/**.cs]
+# xUnit1051: forwarding TestContext.Current.CancellationToken into every HttpClient call adds noise, not safety, here.
+dotnet_diagnostic.xUnit1051.severity = none
+dotnet_diagnostic.CA1861.severity = none
+dotnet_diagnostic.CA2000.severity = none
+dotnet_diagnostic.CA1063.severity = none
+dotnet_diagnostic.CA1816.severity = none

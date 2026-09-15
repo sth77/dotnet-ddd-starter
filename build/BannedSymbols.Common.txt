@@ -1,0 +1,9 @@
+# Banned across the whole solution (design §8, §10).
+# Format: <DocumentationCommentId>;<message>
+P:System.DateTime.Now;Inject System.TimeProvider and call GetLocalNow()/GetUtcNow() instead.
+P:System.DateTime.UtcNow;Inject System.TimeProvider and call GetUtcNow() instead.
+P:System.DateTime.Today;Inject System.TimeProvider instead.
+P:System.DateTimeOffset.Now;Inject System.TimeProvider and call GetLocalNow() instead.
+P:System.DateTimeOffset.UtcNow;Inject System.TimeProvider and call GetUtcNow() instead.
+M:System.Guid.NewGuid;Use Guid.CreateVersion7() (sequential, index-friendly) or the identifier's New() factory.
+N:Newtonsoft.Json;Use System.Text.Json.
